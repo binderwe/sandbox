@@ -1,0 +1,136 @@
+---
+title: "Exponential growth and epidemic models"
+author: "Taal Levi"
+date: "11/02/2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Two prey one predator with exponential growth and Type I functional response
+
+	
+$$\displaystyle \frac{dN_1}{dt}={r_1}{N_1}-{a_1}{N_1}P$$
+
+
+$$\displaystyle \frac{dN_2}{dt}={r_2}{N_2}-{a_2}{N_2}P$$
+ $$\displaystyle \frac{dP}{dt}=cP({a_1}{N_1}+{a_2}{N_2})-dP$$
+
+
+
+
+# Two prey one predators with logistic growth and Type II functional response
+
+	
+$$\displaystyle \frac{dN_1}{dt}={r_1}{N_1}(1-\frac{N_1}{K})-\frac{a_1N_1}{b_1+N_1}P$$
+
+
+$$\displaystyle \frac{dN_2}{dt}={r_2}{N_2}(1-\frac{N_2}{K})-\frac{a_2N_2}{b_2+N_2}P$$
+
+ $$\displaystyle \frac{dP}{dt}=cP(\frac{a_1N_1}{b_1+N_1}+\frac{a_2N_2}{b_2+N_2})-dP$$
+
+
+
+
+
+```{r sir}
+library(deSolve)
+
+RM <- function (Time, Populations, Parameters) {
+    with(as.list(c(Populations, Parameters)), {
+        dN1 = r1*N1*(1-N1/K1)-a1*N1/(b1+N1)*P
+        dP = c*a1*N1/(b1+N1)*P - d*P
+        return(list(c(dN1, dP)))
+    })
+}
+ 
+ 
+pred2prey <- function (Time, Populations, Parameters) {
+    with(as.list(c(Populations, Parameters)), {
+            dN1 = r1*N1*(1-N1/K1)-a1*N1/(b1+N1)*P
+            dN2 = r2*N2*(1-N2/K2)-a2*N1/(b2+N2)*P
+            dP = c*(a1*N1/(b1+N1)*P+a2*N1/(b2+N2)) - d*P
+        return(list(c(dN1, dN2, dP)))
+    })
+}
+ 
+r1=1
+r2=1.3
+a1=0.01
+a2=0.02
+d=0.5
+c=0.1
+K1=500
+K2=500
+
+#initial conditions
+
+P=10 
+N1=100 
+N2=50
+
+# Parameters <- c(r1 = r1,r2=r2,a1=a1,a2=a2,c=c,d=d,K1=K1,K2=K2) 
+# Populations <- c(N1 = N1, N2 = N2,P=P) #starting values
+# 
+ Time <- seq(0, 30, by = 1) #time steps, creates a sequence of integers from 0 to 100
+# 
+# 
+# out <- as.data.frame(ode(func = pred2prey, y = Populations, parms = Parameters, times = Time))
+# 
+# matplot(out[,-1], type = "l", xlab = "Time", ylab = "Population")
+# 
+# legend("topright", c("P","N2", "N1"), lty = c(3,2,1), col = c(3,2,1), box.lwd = 0)
+
+
+###RM
+P=10 
+N1=100 
+
+r1=1.2
+a1=5
+d=0.2
+c=0.07
+K1=1000
+b1=400
+
+r2=0.8
+a2=5
+K2=1000
+b2=400
+
+#mod <- rmprey(0.8, 1000, 5, 400, 0.07, 0.2)
+#b, K, w, s, e, D
+Parameters <- c(r1 = r1,a1=a1,c=c,d=d,K1=K1,b1=b1) 
+Populations <- c(N1 = N1, P=P) #starting values
+Time <- seq(0, 1000, by = 1) #time steps, creates a sequence of integers from 0 to 100
+
+out <- as.data.frame(ode(func = RM, y = Populations, parms = Parameters, times = Time))
+#out
+par(mfrow=c(1,2))
+matplot(out[,-1], type = "l", xlab = "Time", ylab = "Population")
+plot(out$N1,out$P,pch=".")
+legend("topright", c("P","N1"), lty = c(2,1), col = c(2,1), box.lwd = 0)
+
+######################
+## Now try messing with how can 2 prey coexist with shared predator. But read Holt. He probably figured this out already. But then we can add to that
+###################
+
+Parameters <- c(r1 = r1,r2=r2,a1=a1,a2=a2,b1=b1,b2=b2,c=c,d=d,K1=K1,K2=K2) 
+Populations <- c(N1 = N1, N2 = N2,P=P) #starting values
+
+out <- as.data.frame(ode(func = pred2prey, y = Populations, parms = Parameters, times = Time))
+#out
+par(mfrow=c(1,3))
+matplot(out[,-1], type = "l", xlab = "Time", ylab = "Population")
+plot(out$N1,out$P,pch=".")
+plot(out$N2,out$P,pch=".")
+
+legend("topright", c("P","N1","N2"), lty = c(3,2,1), col = c(3,2,1), box.lwd = 0)
+
+# 
+
+```
